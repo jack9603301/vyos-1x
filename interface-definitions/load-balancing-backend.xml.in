@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <interfaceDefinition>
   <node name="load-balancing">
+    <properties>
+      <help>Configure load-balancing</help>
+      <priority>900</priority>
+    </properties>
     <children>
       <node name="backend" owner="${vyos_conf_scripts_dir}/load-balancing-backend.py">
         <properties>
@@ -17,9 +21,15 @@
               <constraint>
                 <validator name="numeric" argument="--range 0-65535"/>
               </constraint>
-              <constraintErrorMessage>Backend server load balancing rule numbers are not between 0 and 65535</constraintErrorMessage>
+              <constraintErrorMessage>Back-end server load balancing rule numbers are not between 0 and 65535</constraintErrorMessage>
             </properties>
             <children>
+              <leafNode name="disable">
+                <properties>
+                  <help>Disable load balancing rules</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
               <leafNode name="virtual-ip">
                 <properties>
                   <help>Virtual server IP</help>
@@ -31,6 +41,9 @@
                     <format>ipv6</format>
                     <description>The virtual server's ipv6 VIP</description>
                   </valueHelp>
+                  <constraint>
+                      <validator name="ip-address"/>
+                  </constraint>
                 </properties>
               </leafNode>
               <leafNode name="virtual-port">
@@ -66,7 +79,62 @@
                   </constraint>
                   <constraintErrorMessage>Operation mode must be dr, tun, or nat</constraintErrorMessage>
                 </properties>
+                <defaultValue>dr</defaultValue>
               </leafNode>
+              <node name="tun-option">
+                <properties>
+                  <help>Tunnel Option</help>
+                </properties>
+                <children>
+                  <leafNode name="type">
+                    <properties>
+                      <help>Tunnel model</help>
+                      <valueHelp>
+                        <format>ipip</format>
+                        <description>IPIP Tunnel</description>
+                      </valueHelp>
+                      <valueHelp>
+                        <format>gue</format>
+                        <description>GUE Tunnel</description>
+                      </valueHelp>
+                      <valueHelp>
+                        <format>gre</format>
+                        <description>GRE Tunnel</description>
+                      </valueHelp>
+                      <constraint>
+                        <regex>^(ipip|gue|gre)$</regex>
+                      </constraint>
+                      <constraintErrorMessage>Tunnel Type must be ipip, gue, or gre</constraintErrorMessage>
+                    </properties>
+                    <defaultValue>ipip</defaultValue>
+                  </leafNode>
+                  <leafNode name="port">
+                    <properties>
+                      <help>GUE Tunnel Port</help>
+                      <valueHelp>
+                        <format>0-65535</format>
+                        <description>GUE Tunnel Port</description>
+                      </valueHelp>
+                      <constraint>
+                        <validator name="numeric" argument="--range 1-65535"/>
+                      </constraint>
+                      <constraintErrorMessage>The GUE Tunnel port number must be between 0 and 65535</constraintErrorMessage>
+                    </properties>
+                  </leafNode>
+                  <leafNode name="csum">
+                    <properties>
+                      <help>Specify that tunnel checksums are enabled</help>
+                      <valueless/>
+                    </properties>
+                  </leafNode>
+                  <leafNode name="remcsum">
+                    <properties>
+                      <help>Specify that Remote Checksum Offload is enabled(It only works for GUE tunnels)</help>
+                      <valueless/>
+                    </properties>
+                  </leafNode>
+                </children>
+              </node>
               <leafNode name="algorithm">
                 <properties>
                   <help>Specify a load balancing algorithm</help>
@@ -127,6 +195,7 @@
                   </constraint>
                   <constraintErrorMessage>Load balancing algorithms must be rr, wrr, lc, wlc, lblc, lblcr, dh, sh, sed, nq, fo, ovf, or mh</constraintErrorMessage>
                 </properties>
+                <defaultValue>rr</defaultValue>
               </leafNode>
               <tagNode name="backend">
                 <properties>
@@ -138,9 +207,15 @@
                   <constraint>
                     <validator name="numeric" argument="--range 0-65535"/>
                   </constraint>
-                  <constraintErrorMessage>The backend server sequence number must be between 0 and 65535</constraintErrorMessage>
+                  <constraintErrorMessage>The back-end server sequence number must be between 0 and 65535</constraintErrorMessage>
                 </properties>
                 <children>
+                  <leafNode name="disable">
+                    <properties>
+                      <help>Disable load balancing back-end server</help>
+                      <valueless/>
+                    </properties>
+                  </leafNode>
                   <leafNode name="backend-ip">
                     <properties>
                       <help>Back-end server IP</help>
@@ -152,6 +227,9 @@
                         <format>ipv6</format>
                         <description>The Back-end server's ipv6 IP</description>
                       </valueHelp>
+                      <constraint>
+                        <validator name="ip-address"/>
+                      </constraint>
                     </properties>
                   </leafNode>
                   <leafNode name="backend-port">

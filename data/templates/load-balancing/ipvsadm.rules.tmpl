@@ -1,0 +1,29 @@
+{% if rule is defined %}
+-C
+{%   for rule, config in rule.items() if config.disable is not defined %}
+-A -t {{ config.virtual_ip }}:{{ config.virtual_port }} -s {{ config.algorithm }}
+{%     for backend, backend_config in config.backend.items() if config.backend is defined and config.backend.disable is not defined %}
+{%       set rule_cmd = '-a -t ' + config.virtual_ip + ':' + config.virtual_port + ' -r ' + backend_config.backend_ip + ':' + backend_config.backend_port  %}
+{%       if config.mode == 'dr' %}
+{{ rule_cmd }} -g
+{%       elif config.mode == 'tun' %}
+{%         set rule_cmd = rule_cmd + '-i'  %}
+{%         if config.tun_option is defined and config.tun_option.type is defined %}
+{%           set rule_cmd = rule_cmd + '--tun-type ' + config.tun_option.type  %}
+{%         endif   %}
+{%         if config.tun_option is defined and config.tun_option.port is defined %}
+{%           set rule_cmd = rule_cmd + '--tun-port ' + config.tun_option.port  %}
+{%         endif   %}
+{%         if config.tun_option is defined and config.tun_option.csum is defined %}
+{%           set rule_cmd = rule_cmd + '--tun-csum ' %}
+{%         endif   %}
+{%         if config.tun_option is defined and config.tun_option.remcsum is defined %}
+{%           set rule_cmd = rule_cmd + '--tun-remcsum ' %}
+{%         endif   %}
+{{ rule_cmd }}
+{%       elif config.mode == 'nat' %}
+{{ rule_cmd }} -m
+{%       endif   %}
+{%     endfor  %}
+{%   endfor  %}
+{% endif %}
